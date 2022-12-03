@@ -18,24 +18,11 @@ public class Solution {
             String firstHalf = line.substring(0, half);
             String secondHalf = line.substring(half);
 
-            Character commonCharacter = findCommonCharacter(firstHalf, secondHalf);
+            Character commonCharacter = getCommonCharacterInGroup(List.of(firstHalf, secondHalf));
             total += getPriorityOfChar(commonCharacter);
         }
 
         return total;
-    }
-
-    private Character findCommonCharacter(String first, String second) {
-        Set<Character> characters = new HashSet<>();
-        for (char c : first.toCharArray()) {
-            characters.add(c);
-        }
-        for (char c : second.toCharArray()) {
-            if (characters.contains(c)) {
-                return c;
-            }
-        }
-        return null;
     }
 
     public int getIdentityBadges(List<String> lines) {
