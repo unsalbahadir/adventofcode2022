@@ -9,14 +9,12 @@ public class Solution {
 
     public int countFullyContainedPairs(List<String> lines) {
         int count = 0;
-
         for (String line : lines) {
             String[] pairs = line.split(",");
             if (containsOtherPair(pairs[0].split("-"), pairs[1].split("-"))) {
                 count++;
             }
         }
-
         return count;
     }
 
@@ -26,24 +24,17 @@ public class Solution {
         int secondLow = Integer.parseInt(secondPair[0]);
         int secondHigh = Integer.parseInt(secondPair[1]);
 
-        if (firstLow >= secondLow && firstHigh <= secondHigh) {
-            return true;
-        } else if (firstLow <= secondLow && firstHigh >= secondHigh) {
-            return true;
-        }
-        return false;
+        return (firstLow >= secondLow && firstHigh <= secondHigh) || (firstLow <= secondLow && firstHigh >= secondHigh);
     }
 
     public int countOverlaps(List<String> lines) {
         int count = 0;
-
         for (String line : lines) {
             String[] pairs = line.split(",");
             if (overlaps(pairs[0].split("-"), pairs[1].split("-"))) {
                 count++;
             }
         }
-
         return count;
     }
 
@@ -53,12 +44,7 @@ public class Solution {
         int secondLow = Integer.parseInt(secondPair[0]);
         int secondHigh = Integer.parseInt(secondPair[1]);
 
-        if (firstLow >= secondLow && firstLow <= secondHigh) {
-            return true;
-        } else if (secondLow >= firstLow && secondLow <= firstHigh) {
-            return true;
-        }
-        return false;
+        return (firstLow >= secondLow && firstLow <= secondHigh) || (secondLow >= firstLow && secondLow <= firstHigh);
     }
 
     public static void main(String[] args) throws IOException {
