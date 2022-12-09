@@ -7,10 +7,6 @@ import java.util.List;
 
 public class Solution {
 
-    private enum Direction {
-        UP, RIGHT, DOWN, LEFT;
-    }
-
     private class Position {
         int row;
         int column;
@@ -26,15 +22,7 @@ public class Solution {
 
         handleMoves(grid, lines, 250);
 
-        int count = 0;
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length; j++) {
-                if (grid[i][j] == 1) {
-                    count++;
-                }
-            }
-        }
-        return count;
+        return countVisitedPositions(grid);
     }
 
     private void handleMoves(int[][] grid, List<String> lines, int startingPosition) {
@@ -48,62 +36,27 @@ public class Solution {
             int moveAmount = Integer.parseInt(move[1]);
 
             for (int i = 0; i < moveAmount; i++) {
-                if ("U".equals(direction)) {
-                    headPosition.row--;
-                } else if ("R".equals(direction)) {
-                    headPosition.column++;
-                } else if ("D".equals(direction)) {
-                    headPosition.row++;
-                } else if ("L".equals(direction)) {
-                    headPosition.column--;
-                }
+                moveHead(headPosition, direction);
                 boolean headAndTailAdjacent = isHeadAndTailAdjacent(headPosition, tailPosition);
                 if (!headAndTailAdjacent) {
-                    if (headPosition.row == tailPosition.row) {
-                        if (headPosition.column > tailPosition.column) {
-                            tailPosition.column++;
-                        } else {
-                            tailPosition.column--;
-                        }
-                    } else if (headPosition.column == tailPosition.column) {
-                        if (headPosition.row > tailPosition.row) {
-                            tailPosition.row++;
-                        } else {
-                            tailPosition.row--;
-                        }
-                    } else {
-                        if (headPosition.column > tailPosition.column) {
-                            tailPosition.column++;
-                        } else {
-                            tailPosition.column--;
-                        }
-                        if (headPosition.row > tailPosition.row) {
-                            tailPosition.row++;
-                        } else {
-                            tailPosition.row--;
-                        }
-                    }
+                    moveTail(headPosition, tailPosition);
                     grid[tailPosition.row][tailPosition.column] = 1;
                 }
             }
         }
     }
 
-    private boolean isHeadAndTailAdjacent(Position headPosition, Position tailPosition) {
-        if (headPosition.row == tailPosition.row) {
-            return Math.abs(headPosition.column - tailPosition.column) <= 1;
-        } else if (headPosition.column == tailPosition.column) {
-            return Math.abs(headPosition.row - tailPosition.row) <= 1;
-        } else {
-            return Math.abs(headPosition.column - tailPosition.column) <= 1 && Math.abs(headPosition.row - tailPosition.row) <= 1;
-        }
-    }
+
 
     public int countPositionsTailVisited2(List<String> lines) {
         int[][] grid = new int[500][500];
 
         handleMoves2(grid, lines, 250);
 
+        return countVisitedPositions(grid);
+    }
+
+    private int countVisitedPositions(int[][] grid) {
         int count = 0;
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[i].length; j++) {
@@ -130,48 +83,65 @@ public class Solution {
             int moveAmount = Integer.parseInt(move[1]);
 
             for (int i = 0; i < moveAmount; i++) {
-                if ("U".equals(direction)) {
-                    headKnot.row--;
-                } else if ("R".equals(direction)) {
-                    headKnot.column++;
-                } else if ("D".equals(direction)) {
-                    headKnot.row++;
-                } else if ("L".equals(direction)) {
-                    headKnot.column--;
-                }
+                moveHead(headKnot, direction);
                 for (int currentKnotIndex = 1; currentKnotIndex < knots.length; currentKnotIndex++) {
                     Position currentKnot = knots[currentKnotIndex];
                     Position knotToFollow = knots[currentKnotIndex - 1];
                     boolean headAndTailAdjacent = isHeadAndTailAdjacent(knotToFollow, currentKnot);
                     if (!headAndTailAdjacent) {
-                        if (knotToFollow.row == currentKnot.row) {
-                            if (knotToFollow.column > currentKnot.column) {
-                                currentKnot.column++;
-                            } else {
-                                currentKnot.column--;
-                            }
-                        } else if (knotToFollow.column == currentKnot.column) {
-                            if (knotToFollow.row > currentKnot.row) {
-                                currentKnot.row++;
-                            } else {
-                                currentKnot.row--;
-                            }
-                        } else {
-                            if (knotToFollow.column > currentKnot.column) {
-                                currentKnot.column++;
-                            } else {
-                                currentKnot.column--;
-                            }
-                            if (knotToFollow.row > currentKnot.row) {
-                                currentKnot.row++;
-                            } else {
-                                currentKnot.row--;
-                            }
-                        }
-
+                        moveTail(knotToFollow, currentKnot);
                     }
                 }
                 grid[tailKnot.row][tailKnot.column] = 1;
+            }
+        }
+    }
+
+    private void moveHead(Position headPosition, String direction) {
+        if ("U".equals(direction)) {
+            headPosition.row--;
+        } else if ("R".equals(direction)) {
+            headPosition.column++;
+        } else if ("D".equals(direction)) {
+            headPosition.row++;
+        } else if ("L".equals(direction)) {
+            headPosition.column--;
+        }
+    }
+
+    private boolean isHeadAndTailAdjacent(Position headPosition, Position tailPosition) {
+        if (headPosition.row == tailPosition.row) {
+            return Math.abs(headPosition.column - tailPosition.column) <= 1;
+        } else if (headPosition.column == tailPosition.column) {
+            return Math.abs(headPosition.row - tailPosition.row) <= 1;
+        } else {
+            return Math.abs(headPosition.column - tailPosition.column) <= 1 && Math.abs(headPosition.row - tailPosition.row) <= 1;
+        }
+    }
+
+    private void moveTail(Position headPosition, Position tailPosition) {
+        if (headPosition.row == tailPosition.row) {
+            if (headPosition.column > tailPosition.column) {
+                tailPosition.column++;
+            } else {
+                tailPosition.column--;
+            }
+        } else if (headPosition.column == tailPosition.column) {
+            if (headPosition.row > tailPosition.row) {
+                tailPosition.row++;
+            } else {
+                tailPosition.row--;
+            }
+        } else {
+            if (headPosition.column > tailPosition.column) {
+                tailPosition.column++;
+            } else {
+                tailPosition.column--;
+            }
+            if (headPosition.row > tailPosition.row) {
+                tailPosition.row++;
+            } else {
+                tailPosition.row--;
             }
         }
     }
