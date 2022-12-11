@@ -1,6 +1,7 @@
 package solutions.day11;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -9,18 +10,51 @@ import java.util.stream.Collectors;
 
 public class Solution {
 
-    public int countLevelOfMonkeyBusiness(List<String> lines, int rounds, boolean divide) {
+//    public int countLevelOfMonkeyBusiness(List<String> lines, int rounds, boolean divide) {
+//        List<Monkey> monkeys = createMonkeys(lines);
+//
+//        for (int i = 0; i < rounds; i++) {
+//            for (Monkey monkey : monkeys) {
+//                for (Iterator<Long> iterator = monkey.items.iterator(); iterator.hasNext(); ) {
+//                    Long item = iterator.next();
+//                    item = monkey.operation.apply(item);
+//                    if (divide) {
+//                        item /= 3;
+//                    }
+//                    boolean isDivisible = (item % monkey.divisibleBy) == 0;
+//
+//                    Monkey monkeyToThrowTo;
+//                    if (isDivisible) {
+//                        monkeyToThrowTo = monkeys.get(monkey.monkeyToThrowToIfTrue);
+//                    } else {
+//                        monkeyToThrowTo = monkeys.get(monkey.monkeyToThrowToIfFalse);
+//                    }
+//                    monkeyToThrowTo.items.add(item);
+//                    iterator.remove();
+//                    monkey.numberOfInspections++;
+//                }
+//            }
+//        }
+//        return monkeys.stream()
+//                .map(monkey -> monkey.numberOfInspections)
+//                .sorted(Collections.reverseOrder())
+//                .limit(2)
+//                .reduce(1, (integer, integer2) -> integer * integer2);
+//    }
+
+    public Long countLevelOfMonkeyBusiness2(List<String> lines) {
         List<Monkey> monkeys = createMonkeys(lines);
 
-        for (int i = 0; i < rounds; i++) {
+        int dividedByTotalProduct = monkeys.stream()
+                .map(monkey -> monkey.divisibleBy)
+                .reduce(1, (integer, integer2) -> integer * integer2);
+        for (int i = 0; i < 10000; i++) {
             for (Monkey monkey : monkeys) {
-                for (Iterator<Long> iterator = monkey.items.iterator(); iterator.hasNext(); ) {
-                    Long item = iterator.next();
+                for (Iterator<BigInteger> iterator = monkey.items.iterator(); iterator.hasNext(); ) {
+                    BigInteger item = iterator.next();
                     item = monkey.operation.apply(item);
-                    if (divide) {
-                        item /= 3;
-                    }
-                    boolean isDivisible = (item % monkey.divisibleBy) == 0;
+                    item = item.remainder(BigInteger.valueOf(dividedByTotalProduct));
+                    boolean isDivisible = (item.remainder(BigInteger.valueOf(monkey.divisibleBy)).equals(BigInteger.ZERO));
 
                     Monkey monkeyToThrowTo;
                     if (isDivisible) {
@@ -38,7 +72,7 @@ public class Solution {
                 .map(monkey -> monkey.numberOfInspections)
                 .sorted(Collections.reverseOrder())
                 .limit(2)
-                .reduce(1, (integer, integer2) -> integer * integer2);
+                .reduce(1L, (integer, integer2) -> integer * integer2);
     }
 
     private List<Monkey> createMonkeys(List<String> lines) {
@@ -66,34 +100,34 @@ public class Solution {
         return monkeys;
     }
 
-    private List<Long> getStartingItems(String startingItemsLine) {
+    private List<BigInteger> getStartingItems(String startingItemsLine) {
         String itemsPart = startingItemsLine.substring(startingItemsLine.lastIndexOf(":") + 2);
         String[] split = itemsPart.split(", ");
 
-        return Arrays.stream(split).map(Long::parseLong).collect(Collectors.toList());
+        return Arrays.stream(split).map(BigInteger::new).collect(Collectors.toList());
     }
 
-    private Function<Long, Long> getOperation(String operationLine) {
+    private Function<BigInteger, BigInteger> getOperation(String operationLine) {
         String operationPart = operationLine.substring(operationLine.lastIndexOf("=") + 2);
         String[] split = operationPart.split(" ");
         String operator = split[1];
         String argument = split[2];
 
         return (input -> {
-            long number;
+            BigInteger number;
             if (argument.equals("old")) {
                 number = input;
             } else {
-                number = Long.parseLong(argument);
+                number = new BigInteger(argument);
             }
             if (operator.equals("*")) {
-                return input * number;
+                return input.multiply(number);
             } else if (operator.equals("+")) {
-                return input + number;
+                return input.add(number);
             } else if (operator.equals("/")) {
-                return input / number;
+                return input.divide(number);
             } else {
-                return input - number;
+                return input.subtract(number);
             }
         });
 
@@ -118,7 +152,7 @@ public class Solution {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day11input.txt"));
-        System.out.println(solution.countLevelOfMonkeyBusiness(lines, 20, true));
-//        System.out.println(solution.countLevelOfMonkeyBusiness(lines, 10000, false));
+//        System.out.println(solution.countLevelOfMonkeyBusiness(lines, 20, true));
+        System.out.println(solution.countLevelOfMonkeyBusiness2(lines));
     }
 }

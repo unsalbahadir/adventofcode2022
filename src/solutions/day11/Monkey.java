@@ -1,18 +1,19 @@
 package solutions.day11;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Function;
 
 public class Monkey {
 
-    List<Long> items;
-    Function<Long, Long> operation;
+    List<BigInteger> items;
+    Function<BigInteger, BigInteger> operation;
     int divisibleBy;
     int monkeyToThrowToIfTrue;
     int monkeyToThrowToIfFalse;
 
-    int numberOfInspections;
-    public Monkey(List<Long> items, Function<Long, Long> operation, int divisibleBy, int monkeyToThrowToIfTrue, int monkeyToThrowToIfFalse) {
+    long numberOfInspections;
+    public Monkey(List<BigInteger> items, Function<BigInteger, BigInteger> operation, int divisibleBy, int monkeyToThrowToIfTrue, int monkeyToThrowToIfFalse) {
         this.items = items;
         this.operation = operation;
         this.divisibleBy = divisibleBy;
