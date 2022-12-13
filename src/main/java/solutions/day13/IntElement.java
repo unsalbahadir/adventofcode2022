@@ -12,4 +12,9 @@ public class IntElement implements Element {
     public Object getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 }

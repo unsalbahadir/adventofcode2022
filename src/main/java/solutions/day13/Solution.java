@@ -34,11 +34,39 @@ public class Solution {
         return sumOfIndices;
     }
 
-    public boolean isInRightOrder(String left, String right) {
+    private boolean isInRightOrder(String left, String right) {
         ListElement leftListElement = convertStringToElements(left);
         ListElement rightListElement = convertStringToElements(right);
 
         return compare(leftListElement, rightListElement) == -1;
+    }
+
+    public int getSolution2(List<String> lines) {
+        List<ListElement> listElements = new ArrayList<>();
+
+        lines.add("[[2]]");
+        lines.add("[[6]]");
+        for (String line : lines) {
+            if (line.isBlank()) {
+                continue;
+            }
+            ListElement listElement = convertStringToElements(line);
+            listElements.add(listElement);
+        }
+
+        listElements.sort(Solution.this::compare);
+
+        int firstIndex = 0;
+        int secondIndex = 0;
+        for (int i = 0; i < listElements.size(); i++) {
+            ListElement listElement = listElements.get(i);
+            if (listElement.toString().equals("[[2]]")) {
+                firstIndex = i + 1;
+            } else if (listElement.toString().equals("[[6]]")) {
+                secondIndex = i + 1;
+            }
+        }
+        return firstIndex * secondIndex;
     }
 
     private ListElement convertStringToElements(String line) {
@@ -127,6 +155,7 @@ public class Solution {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day13input.txt"));
-        System.out.println(solution.getSolution(lines));
+//        System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }

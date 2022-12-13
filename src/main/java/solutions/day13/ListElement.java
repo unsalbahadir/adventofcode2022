@@ -11,4 +11,9 @@ public class ListElement implements Element {
     public Object getValue() {
         return elements;
     }
+
+    @Override
+    public String toString() {
+        return elements.toString();
+    }
 }
