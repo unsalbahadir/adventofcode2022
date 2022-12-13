@@ -11,12 +11,6 @@ import java.util.Stack;
 
 public class Solution {
 
-    private enum Result {
-        RIGHT_ORDER,
-        WRONG_ORDER,
-        NO_OUTCOME;
-    }
-
     public int getSolution(List<String> lines) {
         int sumOfIndices = 0;
         List<Integer> indicesInRightOrder = new ArrayList<>();
@@ -27,7 +21,7 @@ public class Solution {
             String left = lines.get(i);
             String right = lines.get(i + 1);
 
-            if (isInRightOrder(left, right) == Result.RIGHT_ORDER) {
+            if (isInRightOrder(left, right)) {
                 sumOfIndices += pairIndex;
                 indicesInRightOrder.add(pairIndex);
             }
@@ -40,12 +34,11 @@ public class Solution {
         return sumOfIndices;
     }
 
-    public Result isInRightOrder(String left, String right) {
+    public boolean isInRightOrder(String left, String right) {
         ListElement leftListElement = convertStringToElements(left);
         ListElement rightListElement = convertStringToElements(right);
 
-        return isInRightOrder(leftListElement, rightListElement);
-
+        return compare(leftListElement, rightListElement) == -1;
     }
 
     private ListElement convertStringToElements(String line) {
@@ -89,51 +82,45 @@ public class Solution {
         return result;
     }
 
-    private Result isInRightOrder(ListElement left, ListElement right) {
+    private int compare(ListElement left, ListElement right) {
         int i = 0;
         for (; i < left.elements.size(); i++) {
             if (i >= right.elements.size()) {
-                return Result.WRONG_ORDER;
+                return 1;
             }
             Element leftValue = left.elements.get(i);
             Element rightValue = right.elements.get(i);
-            Result result = isInRightOrder(leftValue, rightValue);
-            if (result != Result.NO_OUTCOME) {
+            int result = compare(leftValue, rightValue);
+            if (result != 0) {
                 return result;
             }
         }
         if (i < right.elements.size()) { // right still has some items
-            return Result.RIGHT_ORDER;
+            return -1;
         } else {
-            return Result.NO_OUTCOME;
+            return 0;
         }
     }
 
-    public Result isInRightOrder(Element left, Element right) {
+    public int compare(Element left, Element right) {
         if (left instanceof IntElement && right instanceof IntElement) {
-            return isInRightOrder(((IntElement) left).value, ((IntElement) right).value);
+            return compare(((IntElement) left).value, ((IntElement) right).value);
         } else {
             if (left instanceof IntElement) {
                 ListElement listElement = new ListElement();
                 listElement.elements.add(left);
-                return isInRightOrder(listElement, (ListElement) right);
+                return compare(listElement, (ListElement) right);
             } else if (right instanceof IntElement) {
                 ListElement listElement = new ListElement();
                 listElement.elements.add(right);
-                return isInRightOrder((ListElement) left, listElement);
+                return compare((ListElement) left, listElement);
             }
-            return isInRightOrder((ListElement) left, (ListElement) right);
+            return compare((ListElement) left, (ListElement) right);
         }
     }
 
-    public Result isInRightOrder(int left, int right) {
-        if (left < right) {
-            return Result.RIGHT_ORDER;
-        } else if (left > right) {
-            return Result.WRONG_ORDER;
-        } else {
-            return Result.NO_OUTCOME;
-        }
+    public int compare(int left, int right) {
+        return Integer.compare(left, right);
     }
 
     public static void main(String[] args) throws IOException {
