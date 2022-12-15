@@ -11,6 +11,9 @@ public class Solution {
     private final int targetRow = 2000000;
     private final Set<Position> emptyPositions = new HashSet<>();
 
+    private final List<Position> sensorPositions = new ArrayList<>();
+    private final List<Position> beaconPositions = new ArrayList<>();
+
     private class Position {
         int row;
         int column;
@@ -45,6 +48,8 @@ public class Solution {
 
     public int getSolution(List<String> lines) {
         build(lines);
+        addEmptyPositions(sensorPositions);
+        remove();
 
         List<Position> emptySize = emptyPositions.stream()
                 .filter(position -> position.row == targetRow)
@@ -53,8 +58,6 @@ public class Solution {
     }
 
     private void build(List<String> lines) {
-        List<Position> sensorPositions = new ArrayList<>();
-        List<Position> beaconPositions = new ArrayList<>();
         for (String line : lines) {
             String[] split = line.split(":");
             String[] sensorSplit = split[0].split(" ");
@@ -68,9 +71,6 @@ public class Solution {
             sensorPositions.add(sensorPosition);
             beaconPositions.add(beaconPosition);
         }
-
-        addEmptyPositions(sensorPositions);
-        remove(sensorPositions, beaconPositions);
     }
 
     private int getManhattanDistance(Position firstPosition, Position secondPosition) {
@@ -109,7 +109,7 @@ public class Solution {
         }
     }
 
-    private void remove(List<Position> sensorPositions, List<Position> beaconPositions) {
+    private void remove() {
         for (Position sensorPosition : sensorPositions) {
             emptyPositions.remove(sensorPosition);
         }
