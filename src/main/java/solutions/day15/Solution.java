@@ -3,15 +3,13 @@ package solutions.day15;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Solution {
 
-    private int targetRow = 10;
+    private final int targetRow = 2000000;
+    private final Set<Position> emptyPositions = new HashSet<>();
 
     private class Position {
         int row;
@@ -22,26 +20,39 @@ public class Solution {
             this.row = row;
             this.column = column;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Position position = (Position) o;
+            return row == position.row && column == position.column;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(row, column);
+        }
+
+        @Override
+        public String toString() {
+            return "Position{" +
+                    "row=" + row +
+                    ", column=" + column +
+                    '}';
+        }
     }
 
     public int getSolution(List<String> lines) {
-        char[][] grid = buildGrid(lines);
+        build(lines);
 
-        for (char[] chars : grid) {
-            System.out.println(chars);
-        }
-
-        int count = 0;
-        for (char c : grid[targetRow]) {
-            if (c == '#') {
-                count++;
-            }
-        }
-
-        return count;
+        List<Position> emptySize = emptyPositions.stream()
+                .filter(position -> position.row == targetRow)
+                .collect(Collectors.toList());
+        return emptySize.size();
     }
 
-    private char[][] buildGrid(List<String> lines) {
+    private void build(List<String> lines) {
         List<Position> sensorPositions = new ArrayList<>();
         List<Position> beaconPositions = new ArrayList<>();
         for (String line : lines) {
@@ -58,15 +69,8 @@ public class Solution {
             beaconPositions.add(beaconPosition);
         }
 
-        List<Position> allPositions = Stream.concat(sensorPositions.parallelStream(), beaconPositions.parallelStream())
-                .collect(Collectors.toList());
-        normalizeCoordinates(allPositions);
-
-        char[][] grid = createGridFromMaxValues(allPositions);
-
-        draw(grid, sensorPositions, beaconPositions);
-
-        return grid;
+        addEmptyPositions(sensorPositions);
+        remove(sensorPositions, beaconPositions);
     }
 
     private int getManhattanDistance(Position firstPosition, Position secondPosition) {
@@ -86,60 +90,31 @@ public class Solution {
         return Integer.parseInt(s.substring(start + 1));
     }
 
-    private void normalizeCoordinates(List<Position> positions) {
-        int minRow = Integer.MAX_VALUE;
-        int minColumn = Integer.MAX_VALUE;
-
-        // find min values
-        for (Position position : positions) {
-            minRow = Math.min(minRow, position.row);
-            minColumn = Math.min(minColumn, position.column);
-        }
-
-        // subtract min from every position
-        for (Position position : positions) {
-            position.row -= minRow;
-            position.column -= minColumn;
-        }
-        targetRow -= minRow;
-    }
-
-    private char[][] createGridFromMaxValues(List<Position> positions) {
-        int maxRow = Integer.MIN_VALUE;
-        int maxColumn = Integer.MIN_VALUE;
-
-        for (Position position : positions) {
-            maxRow = Math.max(maxRow, position.row);
-            maxColumn = Math.max(maxColumn, position.column);
-        }
-
-        char[][] grid = new char[maxRow + 1][maxColumn + 1];
-        for (char[] chars : grid) {
-            Arrays.fill(chars, '.');
-        }
-        return grid;
-    }
-
-    private void draw(char[][] grid, List<Position> sensorPositions, List<Position> beaconPositions) {
+    private void addEmptyPositions(List<Position> sensorPositions) {
         for (Position sensorPosition : sensorPositions) {
-            grid[sensorPosition.row][sensorPosition.column] = 'S';
-            drawEmptyPositions(grid, sensorPosition);
-        }
-
-        for (Position beaconPosition : beaconPositions) {
-            grid[beaconPosition.row][beaconPosition.column] = 'B';
+            addEmptyPositions(sensorPosition);
         }
     }
 
-    private void drawEmptyPositions(char[][] grid, Position sensorPosition) {
+    private void addEmptyPositions(Position sensorPosition) {
         int distanceToClosestBeacon = sensorPosition.distanceToClosestBeacon;
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[i].length; j++) {
-                Position currentPosition = new Position(i, j);
-                if (getManhattanDistance(currentPosition, sensorPosition) <= distanceToClosestBeacon) {
-                    grid[i][j] = '#';
-                }
-            }
+        int distanceLeft = distanceToClosestBeacon - Math.abs(targetRow - sensorPosition.row);
+        for (int j = 0; j <= distanceLeft; j++) {
+            Position emptyPosition = new Position(targetRow, sensorPosition.column + j);
+            emptyPositions.add(emptyPosition);
+        }
+        for (int j = 1; j <= distanceLeft; j++) {
+            Position emptyPosition = new Position(targetRow, sensorPosition.column - j);
+            emptyPositions.add(emptyPosition);
+        }
+    }
+
+    private void remove(List<Position> sensorPositions, List<Position> beaconPositions) {
+        for (Position sensorPosition : sensorPositions) {
+            emptyPositions.remove(sensorPosition);
+        }
+        for (Position beaconPosition : beaconPositions) {
+            emptyPositions.remove(beaconPosition);
         }
     }
 
