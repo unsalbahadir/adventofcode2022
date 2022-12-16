@@ -65,6 +65,9 @@ public class Solution {
         totalPressureReleased += getCurrentFlowRate();
         int maxTotalPressureReleased = totalPressureReleased;
 
+        if (areAllValvesOpen()) { // if all are open, no need to move again
+            return maxTotalPressureReleased;
+        }
         // move or open
         for (Valve adjacentValve : currentValve.adjacentValves) {
             if (currentValve.adjacentValves.size() > 1 && adjacentValve == previousValve) {
@@ -93,6 +96,12 @@ public class Solution {
                 .filter(valve -> valve.isOpen)
                 .mapToInt(valve -> valve.flowRate)
                 .sum();
+    }
+
+    private boolean areAllValvesOpen() {
+        return valves.values().stream()
+                .filter(valve -> valve.flowRate != 0)
+                .allMatch(valve -> valve.isOpen);
     }
 
     public static void main(String[] args) throws IOException {
