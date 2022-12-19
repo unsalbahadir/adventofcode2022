@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Solution {
 
@@ -11,7 +12,7 @@ public class Solution {
         int sum = 0;
         for (String line : lines) {
             Blueprint blueprint = buildBlueprint(line);
-            int numberOfGeodesOpened = getNumberOfGeodesOpened(blueprint);
+            int numberOfGeodesOpened = runSimulation(blueprint, 24);
             System.out.println("Number of geodes for blueprint " + blueprint.id + ": " + numberOfGeodesOpened);
             int qualityLevel = blueprint.id * numberOfGeodesOpened;
             sum += qualityLevel;
@@ -42,15 +43,10 @@ public class Solution {
         return blueprint;
     }
 
-    private int getNumberOfGeodesOpened(Blueprint blueprint) {
-        blueprint.minutesLeft = 24;
-        return runSimulation2(blueprint);
-    }
-
-    private int runSimulation2(Blueprint starterBlueprint) {
+    private int runSimulation(Blueprint starterBlueprint, int minutes) {
         Set<Blueprint> blueprints = new HashSet<>();
         blueprints.add(starterBlueprint);
-        for (int i = 0; i < 24; i++) {
+        for (int i = 0; i < minutes; i++) {
             SetWithMaxSize nextPossibleBlueprints = new SetWithMaxSize(200000);
             for (Blueprint currentBlueprint : blueprints) {
                 if (currentBlueprint.hasResourceForRobot(new GeodeRobot())) {
@@ -118,10 +114,24 @@ public class Solution {
         return blueprints;
     }
 
+    public int getSolution2(List<String> lines) {
+        int result = 1;
+        lines = lines.stream().limit(3).collect(Collectors.toList());
+        for (String line : lines) {
+            Blueprint blueprint = buildBlueprint(line);
+            int numberOfGeodesOpened = runSimulation(blueprint, 32);
+            System.out.println("Number of geodes for blueprint " + blueprint.id + ": " + numberOfGeodesOpened);
+            result *= numberOfGeodesOpened;
+        }
+
+        return result;
+    }
+
     public static void main(String[] args) throws IOException {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day19input.txt"));
-        System.out.println(solution.getSolution(lines));
+//        System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }
