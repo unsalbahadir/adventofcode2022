@@ -10,15 +10,15 @@ import java.util.stream.Collectors;
 public class Solution {
 
     private class Node {
-        int value;
+        long value;
         Node next;
 
-        public Node(int value) {
+        public Node(long value) {
             this.value = value;
         }
     }
 
-    public int getSolution(List<String> lines) {
+    public long getSolution(List<String> lines) {
         List<Node> orderOfNodes = new ArrayList<>();
         int firstValue = Integer.parseInt(lines.get(0));
         Node firstNode = new Node(firstValue);
@@ -41,9 +41,9 @@ public class Solution {
         printNodes(firstNode);
 
         Node searchNode = findNode(firstNode, 0);
-        int thousandth = 0;
-        int twoThousandth = 0;
-        int threeThousandth = 0;
+        long thousandth = 0;
+        long twoThousandth = 0;
+        long threeThousandth = 0;
 
         for (int i = 1; i <= 3000; i++) {
             searchNode = searchNode.next;
@@ -95,7 +95,7 @@ public class Solution {
     }
 
     private void printNodes(Node startNode) {
-        List<Integer> values = new ArrayList<>();
+        List<Long> values = new ArrayList<>();
         values.add(startNode.value);
         Node currentNode = startNode.next;
         while (currentNode != startNode) {
@@ -105,10 +105,57 @@ public class Solution {
         System.out.println(values.stream().map(Object::toString).collect(Collectors.joining(",")));
     }
 
+    public long getSolution2(List<String> lines) {
+        long decryptionKey = 811589153;
+
+        List<Node> orderOfNodes = new ArrayList<>();
+        long firstValue = Long.parseLong(lines.get(0));
+        firstValue *= decryptionKey;
+        Node firstNode = new Node(firstValue);
+        orderOfNodes.add(firstNode);
+        Node currentNode = firstNode;
+        for (int i = 1; i < lines.size(); i++) {
+            String line = lines.get(i);
+            long value = Long.parseLong(line);
+            value *= decryptionKey;
+            Node node = new Node(value);
+            orderOfNodes.add(node);
+            currentNode.next = node;
+            currentNode = node;
+        }
+        currentNode.next = firstNode;
+
+        for (int i = 0; i < 10; i++) {
+            for (Node node : orderOfNodes) {
+                moveNode(node, orderOfNodes.size());
+            }
+        }
+
+        Node searchNode = findNode(firstNode, 0);
+        printNodes(searchNode);
+
+        long thousandth = 0;
+        long twoThousandth = 0;
+        long threeThousandth = 0;
+
+        for (int i = 1; i <= 3000; i++) {
+            searchNode = searchNode.next;
+            if (i == 1000) {
+                thousandth = searchNode.value;
+            } else if (i == 2000) {
+                twoThousandth = searchNode.value;
+            } else if (i == 3000) {
+                threeThousandth = searchNode.value;
+            }
+        }
+        return thousandth + twoThousandth + threeThousandth;
+    }
+
     public static void main(String[] args) throws IOException {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day20input.txt"));
-        System.out.println(solution.getSolution(lines));
+//        System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }
