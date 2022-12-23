@@ -16,6 +16,13 @@ public class Solution {
         return findEmptyPositionCount(elves);
     }
 
+    public int getSolution2(List<String> lines) {
+        List<Elf> elves = getElves(lines);
+//        System.out.println(elves);
+
+        return doRounds2(elves);
+    }
+
     private List<Elf> getElves(List<String> lines) {
         List<Elf> elves = new ArrayList<>();
         for (int i = 0; i < lines.size(); i++) {
@@ -92,6 +99,68 @@ public class Solution {
         }
     }
 
+    private int doRounds2(List<Elf> elves) {
+        Queue<Direction> directions = new LinkedList<>(Arrays.asList(Direction.values()));
+
+        boolean elvesMove = true;
+        int round = 0;
+        while (elvesMove) {
+            elvesMove = false;
+            // first half
+            Set<Position> elfPositions = getAllElfPositions(elves);
+            Map<Position, Integer> proposedPositions = new HashMap<>();
+            for (Elf elf : elves) {
+                Position currentPosition = elf.currentPosition;
+                boolean isThereAnElfAdjacent = isThereAnElfAdjacent(elfPositions, currentPosition);
+                if (!isThereAnElfAdjacent) {
+                    continue;
+                }
+                for (Direction direction : directions) {
+                    if (direction == Direction.NORTH) {
+                        boolean adjacentElfInDirection = isThereAnElfAdjacent(elfPositions, currentPosition, "N", "NE", "NW");
+                        if (!adjacentElfInDirection) {
+                            elf.proposedPosition = getAdjacentPosition(currentPosition, "N");
+                            break;
+                        }
+                    } else if (direction == Direction.SOUTH) {
+                        boolean adjacentElfInDirection = isThereAnElfAdjacent(elfPositions, currentPosition, "S", "SE", "SW");
+                        if (!adjacentElfInDirection) {
+                            elf.proposedPosition = getAdjacentPosition(currentPosition, "S");
+                            break;
+                        }
+                    } else if (direction == Direction.WEST) {
+                        boolean adjacentElfInDirection = isThereAnElfAdjacent(elfPositions, currentPosition, "W", "NW", "SW");
+                        if (!adjacentElfInDirection) {
+                            elf.proposedPosition = getAdjacentPosition(currentPosition, "W");
+                            break;
+                        }
+                    } else {
+                        boolean adjacentElfInDirection = isThereAnElfAdjacent(elfPositions, currentPosition, "E", "NE", "SE");
+                        if (!adjacentElfInDirection) {
+                            elf.proposedPosition = getAdjacentPosition(currentPosition, "E");
+                            break;
+                        }
+                    }
+                }
+                proposedPositions.merge(elf.proposedPosition, 1, Integer::sum);
+            }
+
+            // second half
+            for (Elf elf : elves) {
+                if (elf.proposedPosition != null) {
+                    if (proposedPositions.get(elf.proposedPosition) == 1) {
+                        elf.currentPosition = elf.proposedPosition;
+                        elvesMove = true;
+                    }
+                    elf.proposedPosition = null;
+                }
+            }
+            directions.add(directions.poll());
+            round++;
+        }
+        return round;
+    }
+
     private boolean isThereAnElfAdjacent(Set<Position> positions, Position currentPosition) {
         return isThereAnElfAdjacent(positions, currentPosition, "N", "NE", "NE", "E", "SE", "S", "SW", "W", "NW");
     }
@@ -157,5 +226,6 @@ public class Solution {
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day23input.txt"));
         System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }
