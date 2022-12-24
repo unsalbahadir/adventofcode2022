@@ -15,23 +15,41 @@ public class Solution {
     private int minRow = 1;
     private int maxColumn;
     private int minColumn = 1;
-    private Position startingPosition;
-    private Position endingPosition;
-
 
     public int getSolution(List<String> lines) {
         List<Blizzard> blizzards = buildBlizzards(lines);
 //        System.out.println(blizzards);
 
-        startingPosition = getStartingPosition(lines);
+        Position startingPosition = getStartingPosition(lines);
 //        System.out.println(startingPosition);
-        endingPosition = getEndingPosition(lines);
+        Position endingPosition = getEndingPosition(lines);
 //        System.out.println(endingPosition);
 
         maxRow = lines.size() - 2;
         maxColumn = lines.get(0).length() - 2;
 
-        return reachGoal(blizzards);
+        return reachGoal(blizzards, startingPosition, endingPosition);
+    }
+
+    public int getSolution2(List<String> lines) {
+        List<Blizzard> blizzards = buildBlizzards(lines);
+//        System.out.println(blizzards);
+
+        Position startingPosition = getStartingPosition(lines);
+//        System.out.println(startingPosition);
+        Position endingPosition = getEndingPosition(lines);
+//        System.out.println(endingPosition);
+
+        maxRow = lines.size() - 2;
+        maxColumn = lines.get(0).length() - 2;
+
+        int firstRun = reachGoal(blizzards, startingPosition, endingPosition);
+        System.out.println("First run: " + firstRun);
+        int secondRun = reachGoal(blizzards, endingPosition, startingPosition);
+        System.out.println("Second run: " + secondRun);
+        int thirdRun = reachGoal(blizzards, startingPosition, endingPosition);
+        System.out.println("Third run: " + thirdRun);
+        return firstRun + secondRun + thirdRun;
     }
 
     private List<Blizzard> buildBlizzards(List<String> lines) {
@@ -82,7 +100,7 @@ public class Solution {
         return new Position(-1, -1);
     }
 
-    private int reachGoal(List<Blizzard> blizzards) {
+    private int reachGoal(List<Blizzard> blizzards, Position startingPosition, Position endingPosition) {
         Set<Position> positions = new HashSet<>();
         positions.add(startingPosition);
         int minute = 0;
@@ -97,7 +115,7 @@ public class Solution {
                     if (possiblePosition.equals(endingPosition)) {
                         return minute + 1;
                     }
-                    if (canMove(blizzards, possiblePosition)) {
+                    if (canMove(blizzards, possiblePosition, startingPosition)) {
                         nextPositions.add(possiblePosition);
                     }
                 }
@@ -152,7 +170,7 @@ public class Solution {
         return adjacentPositions;
     }
 
-    private boolean canMove(List<Blizzard> blizzards, Position proposedPosition) {
+    private boolean canMove(List<Blizzard> blizzards, Position proposedPosition, Position startingPosition) {
         if (proposedPosition.equals(startingPosition)) {
             return true;
         }
@@ -174,6 +192,7 @@ public class Solution {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day24input.txt"));
-        System.out.println(solution.getSolution(lines));
+//        System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }
