@@ -3,9 +3,7 @@ package solutions.day17;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Solution {
@@ -13,7 +11,7 @@ public class Solution {
     public static final int MIN_COLUMN = 0;
     public static final int MAX_COLUMN = 6;
 
-    public int getSolution(List<String> lines) {
+    public long getSolution(List<String> lines) {
         List<Character> jetPatterns = new ArrayList<>();
         for (String line : lines) {
             for (char c : line.toCharArray()) {
@@ -21,45 +19,83 @@ public class Solution {
             }
         }
 
-        List<Shape> shapes = run(2022, jetPatterns);
-        printShapes(shapes);
-        return getHighestRow(shapes) + 1;
+        return run(2022, jetPatterns) + 1;
     }
 
-    private List<Shape> run(int rockLimit, List<Character> jetPatterns) {
-        List<Shape> shapes = new ArrayList<>();
+    public long getSolution2(List<String> lines) {
+        List<Character> jetPatterns = new ArrayList<>();
+        for (String line : lines) {
+            for (char c : line.toCharArray()) {
+                jetPatterns.add(c);
+            }
+        }
+
+        return run(1000000000000L, jetPatterns) + 1;
+    }
+
+    private long run(long rockLimit, List<Character> jetPatterns) {
+        SetWithMaxSize allPositions = new SetWithMaxSize(200);
+        Map<Long, Long> heightAddedAtShapeCount = new HashMap<>();
 
         int jetIndex = 0;
-        while (shapes.size() < rockLimit) {
-            Shape newShape = getShape(getHighestRow(shapes) + 4, 2, shapes.size());
+        long shapeCount = 0;
+        int shapeType = 0;
+        long shapeCountSinceLastReset = 0;
+        int resetCount = 0;
+        long maxRowInLastPattern = 0;
+        int patternCount = 0;
+        while (shapeCount < rockLimit) {
+            Shape newShape = getShape(getHighestRow(allPositions) + 4, 2, shapeType);
+            shapeType++;
+            if (shapeType >= 5) {
+                shapeType = 0;
+            }
             boolean stopped = false;
             while (!stopped) {
-                pushRock(shapes, newShape, jetPatterns.get(jetIndex));
+                pushRock(allPositions.getElements(), newShape, jetPatterns.get(jetIndex));
                 jetIndex++;
                 if (jetIndex == jetPatterns.size()) {
                     jetIndex = 0;
+                    resetCount++;
+                    if (resetCount == 5) {
+                        resetCount = 0;
+                        long heightChangeInPattern = getHighestRow(allPositions) - maxRowInLastPattern;
+                        patternCount++;
+                        if (patternCount == 2) {
+                            long remainingRocks = rockLimit - shapeCount;
+                            long neededPatternRounds = remainingRocks / shapeCountSinceLastReset;
+                            long remainderShapeCountAfterPattern = remainingRocks % shapeCountSinceLastReset;
+                            Long remainderHeight = heightAddedAtShapeCount.get(remainderShapeCountAfterPattern);
+                            return getHighestRow(allPositions) + (neededPatternRounds * heightChangeInPattern) + remainderHeight;
+                        }
+                        shapeCountSinceLastReset = 0;
+                        maxRowInLastPattern = getHighestRow(allPositions);
+                    }
                 }
 
                 // check if new positions clash with existing shape positions
                 moveShapeDown(newShape);
-                if (isClashing(shapes, newShape) || getBottom(newShape) == -1) {
+                if (isClashing(allPositions.getElements(), newShape) || getBottom(newShape) == -1) {
                     moveShapeUp(newShape);
                     stopped = true;
                 }
             }
-            shapes.add(newShape);
-//            printShapes(shapes);
+            allPositions.addAll(newShape.positions);
+            shapeCount++;
+            shapeCountSinceLastReset++;
+            long heightChangeSinceReset = getHighestRow(allPositions) - maxRowInLastPattern;
+            heightAddedAtShapeCount.put(shapeCountSinceLastReset, heightChangeSinceReset);
         }
 
-        return shapes;
+        return getHighestRow(allPositions);
     }
 
-    private void pushRock(List<Shape> shapes, Shape currentShape, Character jetPattern) {
+    private void pushRock(Set<Position> positions, Shape currentShape, Character jetPattern) {
         if (jetPattern == '>') {
             Position rightmostPosition = getRightmostPosition(currentShape);
             if (rightmostPosition.column != MAX_COLUMN) {
                 moveShapeRight(currentShape);
-                if (isClashing(shapes, currentShape)) { // revert
+                if (isClashing(positions, currentShape)) { // revert
                     moveShapeLeft(currentShape);
                 }
             }
@@ -67,15 +103,14 @@ public class Solution {
             Position leftmostPosition = getLeftmostPosition(currentShape);
             if (leftmostPosition.column != MIN_COLUMN) {
                 moveShapeLeft(currentShape);
-                if (isClashing(shapes, currentShape)) {
+                if (isClashing(positions, currentShape)) {
                     moveShapeRight(currentShape);
                 }
             }
         }
     }
 
-    private boolean isClashing(List<Shape> shapes, Shape newShape) {
-        Set<Position> positions = shapes.stream().flatMap(shape -> shape.positions.stream()).collect(Collectors.toSet());
+    private boolean isClashing(Set<Position> positions, Shape newShape) {
         return newShape.positions.stream().anyMatch(positions::contains);
     }
 
@@ -103,8 +138,8 @@ public class Solution {
         return leftmostPosition;
     }
 
-    private int getHighestRow(List<Shape> shapes) {
-        int maxRow = -1;
+    private long getHighestRow(List<Shape> shapes) {
+        long maxRow = -1;
         for (Shape shape : shapes) {
             for (Position position : shape.positions) {
                 maxRow = Math.max(maxRow, position.row);
@@ -113,8 +148,15 @@ public class Solution {
         return maxRow;
     }
 
-    private int getBottom(Shape shape) {
-        int minRow = Integer.MAX_VALUE;
+    private long getHighestRow(SetWithMaxSize positions) {
+        if (positions.getElements().isEmpty()) {
+            return -1;
+        }
+        return positions.getLast().row;
+    }
+
+    private long getBottom(Shape shape) {
+        long minRow = Integer.MAX_VALUE;
         for (Position position : shape.positions) {
             minRow = Math.min(minRow, position.row);
         }
@@ -145,7 +187,7 @@ public class Solution {
         }
     }
 
-    private Shape getShape(int bottomRow, int leftEdgeColumn, int turn) {
+    private Shape getShape(long bottomRow, int leftEdgeColumn, long turn) {
         turn = turn % 5;
 
         Shape shape;
@@ -163,7 +205,7 @@ public class Solution {
         return shape;
     }
 
-    private Shape getHorizontalLineShape(int bottomRow, int leftEdgeColumn) {
+    private Shape getHorizontalLineShape(long bottomRow, int leftEdgeColumn) {
         Shape shape = new Shape();
         shape.positions.add(new Position(bottomRow, leftEdgeColumn));
         shape.positions.add(new Position(bottomRow, leftEdgeColumn + 1));
@@ -172,7 +214,7 @@ public class Solution {
         return shape;
     }
 
-    private Shape getPlusShape(int bottomRow, int leftEdgeColumn) {
+    private Shape getPlusShape(long bottomRow, int leftEdgeColumn) {
         Shape shape = new Shape();
         shape.positions.add(new Position(bottomRow, leftEdgeColumn + 1));
         shape.positions.add(new Position(bottomRow + 1, leftEdgeColumn));
@@ -182,7 +224,7 @@ public class Solution {
         return shape;
     }
 
-    private Shape getLShape(int bottomRow, int leftEdgeColumn) {
+    private Shape getLShape(long bottomRow, int leftEdgeColumn) {
         Shape shape = new Shape();
         shape.positions.add(new Position(bottomRow, leftEdgeColumn));
         shape.positions.add(new Position(bottomRow, leftEdgeColumn + 1));
@@ -192,7 +234,7 @@ public class Solution {
         return shape;
     }
 
-    private Shape getVerticalLineShape(int bottomRow, int leftEdgeColumn) {
+    private Shape getVerticalLineShape(long bottomRow, int leftEdgeColumn) {
         Shape shape = new Shape();
         shape.positions.add(new Position(bottomRow, leftEdgeColumn));
         shape.positions.add(new Position(bottomRow + 1, leftEdgeColumn));
@@ -201,7 +243,7 @@ public class Solution {
         return shape;
     }
 
-    private Shape getSquareShape(int bottomRow, int leftEdgeColumn) {
+    private Shape getSquareShape(long bottomRow, int leftEdgeColumn) {
         Shape shape = new Shape();
         shape.positions.add(new Position(bottomRow, leftEdgeColumn));
         shape.positions.add(new Position(bottomRow, leftEdgeColumn + 1));
@@ -213,8 +255,8 @@ public class Solution {
     private void printShapes(List<Shape> shapes) {
         Set<Position> positions = shapes.stream().flatMap(shape -> shape.positions.stream()).collect(Collectors.toSet());
 
-        int highestRow = getHighestRow(shapes);
-        char[][] grid = new char[highestRow  + 1][7];
+        long highestRow = getHighestRow(shapes);
+        char[][] grid = new char[(int) (highestRow  + 1)][7];
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[i].length; j++) {
                 if (positions.contains(new Position(i, j))) {
@@ -241,6 +283,7 @@ public class Solution {
         Solution solution = new Solution();
 
         List<String> lines = Files.readAllLines(Paths.get("inputs/day17input.txt"));
-        System.out.println(solution.getSolution(lines));
+//        System.out.println(solution.getSolution(lines));
+        System.out.println(solution.getSolution2(lines));
     }
 }

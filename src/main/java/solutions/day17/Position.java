@@ -3,10 +3,10 @@ package solutions.day17;
 import java.util.Objects;
 
 class Position {
-    int row;
+    long row;
     int column;
 
-    public Position(int row, int column) {
+    public Position(long row, int column) {
         this.row = row;
         this.column = column;
     }
